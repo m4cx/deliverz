@@ -1,10 +1,14 @@
+using Deliverz.Api;
+using Deliverz.Application;
+using Deliverz.Infrastructure.Storage;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.SpaServices.AngularCli;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System;
 
 namespace Deliverz.Web
 {
@@ -25,11 +29,32 @@ namespace Deliverz.Web
             {
                 configuration.RootPath = "ClientApp/dist";
             });
+
+            services.AddDeliverzApi(Configuration);
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+
+
+        /// <summary>
+        /// Configures the specified application.
+        /// </summary>
+        /// <param name="app">The application.</param>
+        /// <param name="env">The env.</param>
+        /// <remarks>This method gets called by the runtime. Use this method to configure the HTTP request pipeline.</remarks>
+        /// <exception cref="System.ArgumentNullException">
+        /// app
+        /// or
+        /// env
+        /// </exception>
+#pragma warning disable CA1822 // Mark members as static
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+#pragma warning restore CA1822 // Mark members as static
         {
+            _ = app ?? throw new ArgumentNullException(nameof(app));
+            _ = env ?? throw new ArgumentNullException(nameof(env));
+
+            InitializeDatabase(app);
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -50,10 +75,7 @@ namespace Deliverz.Web
 
             app.UseRouting();
 
-            app.UseEndpoints(endpoints =>
-            {
-                // insert endpoint routings here
-            });
+            app.UseDeliverzApi();
 
             app.UseSpa(spa =>
             {
@@ -61,12 +83,18 @@ namespace Deliverz.Web
                 // see https://go.microsoft.com/fwlink/?linkid=864501
 
                 spa.Options.SourcePath = "ClientApp";
-
                 if (env.IsDevelopment())
                 {
                     spa.UseAngularCliServer(npmScript: "start");
                 }
             });
+        }
+
+        private static void InitializeDatabase(IApplicationBuilder app)
+        {
+            using var serviceScope = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope();
+            var context = serviceScope.ServiceProvider.GetService<DeliverzDbContext>();
+            context.Database.Migrate();
         }
     }
 }

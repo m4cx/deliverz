@@ -1,0 +1,10 @@
+<ng-container *ngIf="orders$ | async as orders">
+  <ng-container *ngIf="orders && orders.length > 0 else noItems">
+    <ng-container *ngFor="let order of orders">
+      <h2>{{order.id}} - {{order.description}}</h2>
+    </ng-container>
+  </ng-container>
+</ng-container>
+<ng-template #noItems>
+  Keine Daten
+</ng-template>
