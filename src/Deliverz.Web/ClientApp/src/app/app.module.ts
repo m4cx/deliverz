@@ -19,7 +19,8 @@ import { HomeComponent } from './home/home.component';
     HttpClientModule,
     FormsModule,
     RouterModule.forRoot([
-      { path: '', component: HomeComponent, pathMatch: 'full' }
+      { path: '', component: HomeComponent, pathMatch: 'full' },
+      { path: 'orders', loadChildren: () => import('./modules/orders/orders.module').then(m => m.OrdersModule) }
     ])
   ],
   providers: [],
